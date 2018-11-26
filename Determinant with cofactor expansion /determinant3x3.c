@@ -74,7 +74,7 @@ char** argumanListesiOlustur(){
 	return newargv;
 }
 char** int2dMatrixToCharArray(int **matris, int satir, int sutun){
-	int i,j,number,count = 0;
+	int i,j,count = 0;
 	char **sayilar = (char **) calloc (15, sizeof (char *));
 	for (i = 0; i < 15; i++){
 		sayilar[i] = (char *) calloc (15, sizeof (char));
@@ -84,8 +84,7 @@ char** int2dMatrixToCharArray(int **matris, int satir, int sutun){
 		for (j = 0; j < sutun; j++)
 		{	
 		
-			number = matris[i][j];
-			sprintf(sayilar[count++], "%d", number);
+			sprintf(sayilar[count++], "%d", matris[i][j]);
 			
 		}
 	}
@@ -111,18 +110,20 @@ int main(int argc, char *argv[], char **envp)
 	//2x2 matris mem allac
 	int **yeniMatris = mallocMultiDarray(2, 2);
 	
-
-	createTwoDarray(matris, yeniMatris, 1, 2);
+    for(i = 0; i < 3; i++){
+	    createTwoDarray(matris, yeniMatris, rastgeleSatir, i);
 	
-	//execve icin arguman listesi
-	char **newargv = int2dMatrixToCharArray(yeniMatris,2,2);
-	newargv[5] = NULL;
+	    //execve icin arguman listesi
+	    char **newargv = int2dMatrixToCharArray(yeniMatris,2,2);
+	    newargv[5] = NULL;
 	
-	int fv2 = fork();
-	int exec2;
-	if (fv2==0)
-		exec2 = execve ("kofakhesap", newargv, envp);
-	
+	    int fv2 = fork();
+	    int exec2;
+	    if (fv2==0)
+		    exec2 = execve ("kofakhesap", newargv, envp);
+        else
+            wait(&exec2);
+	}
 	printf("naber\n");
 	return 0;
 }
