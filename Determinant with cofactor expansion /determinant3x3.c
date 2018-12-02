@@ -38,7 +38,7 @@ void createTwoDarray(int **matris, int **yeniMatris, int sSatir, int sSutun){
 
 void create3Darray(int **matris){
 	int i,j,count=0;
-	int sayilar[9] = {1,2,-1,0,1,-1,-1,3,1};
+	int sayilar[9] = {1,2,1,3,1,0,2,1,5};
 	for(i = 0; i < SATIR; i++)
 		for(j = 0; j < SUTUN; j++)
 			*(*(matris+i)+j) = sayilar[count++];
@@ -90,7 +90,8 @@ char** int2dMatrixToCharArray(int **matris, int satir, int sutun){
 	}
 	return sayilar;
 }
-int main(int argc, char *argv[], char **envp)
+
+int main()
 {	
 	//3x3 matris 2d array memory allocation
 	int **matris = mallocMultiDarray(SATIR, SUTUN);
@@ -100,30 +101,54 @@ int main(int argc, char *argv[], char **envp)
 	
 	int exec, i,j;
 	int fv = fork();
-	if (fv == 0)
-		exec = execve ("satsutsec", argv, envp);
+	if (fv == 0){
+		exec = execv("satsutsec", NULL);
+	}
 	//else
-		//sleep(1);
+	//	_exit(1);
 
 	int rastgeleSatir = rastgeleSatirOku();
 	
 	//2x2 matris mem allac
 	int **yeniMatris = mallocMultiDarray(2, 2);
 	
+
+	char temp[2][2];
+	char **newargv;
+	int p,r;
+	int fd[2];
+	int pid, line;
+	if (pipe(fd)<0){
+		perror("pipe");
+		exit(1);
+	}
+	int toplamKofaktor = 0;
     for(i = 0; i < 3; i++){
 	    createTwoDarray(matris, yeniMatris, rastgeleSatir, i);
-	
-	    //execve icin arguman listesi
-	    char **newargv = int2dMatrixToCharArray(yeniMatris,2,2);
-	    newargv[5] = NULL;
-	
-	    int fv2 = fork();
-	    int exec2;
-	    if (fv2==0)
-		    exec2 = execve ("kofakhesap", newargv, envp);
-        else
-            wait(&exec2);
+		printf("--------\n");
+		for (p = 0; p < 2; ++p){
+			for (r = 0; r < 2; ++r){
+				temp[p][r] = yeniMatris[p][r];
+			}
+		}
+		int f = fork();
+		if (f == 0){
+			write(fd[1],&temp, sizeof(char)*4);
+			f = execv("kofakhesap", NULL);
+		}
+		else{
+			wait(&f);
+			int kofaktor = 0;
+			read(fd[0], &kofaktor, sizeof(int));
+			printf("%d\n",kofaktor);
+			if ((i+rastgeleSatir) % 2 == 1){
+				kofaktor *= -1;
+			}
+			kofaktor *= matris[rastgeleSatir][i];
+			toplamKofaktor += kofaktor;
+		}
+		printf("\n%d\n",toplamKofaktor);
 	}
-	printf("naber\n");
 	return 0;
+		
 }
